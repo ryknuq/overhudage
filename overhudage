@@ -1195,14 +1195,9 @@ function library:init()
 
     function self.NewWindow(data)
         local window = {
-            -- Existing properties
             title = data.title or '',
             selectedTab = nil;
             tabs = {},
-            -- Add these new properties:
-            roundedCorners = true,
-            cornerRadius = 8,
-            padding = 10,
             objects = {},
             colorpicker = {
                 objects = {};
@@ -2062,19 +2057,7 @@ function library:init()
                 function section:SetText(text)
                     self.text = tostring(text);
                     self.objects.textlabel.Text = self.text;
-                    
-                    -- Add icon support (optional)
-                    if not self.objects.icon then
-                        self.objects.icon = utility:Draw('Square', {
-                            Size = newUDim2(0, 12, 0, 12),
-                            Position = newUDim2(0, 5, 0, -6),
-                            ThemeColor = 'Accent',
-                            ZIndex = library.zindexOrder.window+16,
-                            Parent = self.objects.background
-                        })
-                    end
-                    
-                    local x = self.objects.background.Object.Size.X - self.objects.textlabel.TextBounds.X - 25
+                    local x = self.objects.background.Object.Size.X - self.objects.textlabel.TextBounds.X - 13
                     self.objects.topBorder2.Size = newUDim2(0, x, 0, 1)
                     self.objects.topBorder2.Position = newUDim2(1, 1 + -x, 0, 0)
                 end
@@ -2121,33 +2104,33 @@ function library:init()
                         options = {};
                         objects = {};
                     };
-                
+
                     local blacklist = {'objects'};
                     for i,v in next, data do
-                        if not table.find(blacklist, i) and toggle[i] ~= nil then
+                        if not table.find(blacklist, i) ~= toggle[i] ~= nil then
                             toggle[i] = v
                         end
                     end
-                
+
                     table.insert(self.options, toggle)
-                
+
                     if toggle.flag then
                         library.flags[toggle.flag] = toggle.state;
                         library.options[toggle.flag] = toggle;
                     end
-                
+
                     --- Create Objects ---
                     do
                         local objs = toggle.objects;
                         local z = library.zindexOrder.window+25;
-                
+
                         objs.holder = utility:Draw('Square', {
                             Size = newUDim2(1,0,0,17);
                             Transparency = 0;
                             ZIndex = z+5;
                             Parent = section.objects.optionholder;
                         })
-                
+
                         objs.background = utility:Draw('Square', {
                             Size = newUDim2(0,8,0,8);
                             Position = newUDim2(0,2,0,4);
@@ -2155,7 +2138,7 @@ function library:init()
                             ZIndex = z+3;
                             Parent = objs.holder;
                         })
-                
+
                         objs.gradient = utility:Draw('Image', {
                             Size = newUDim2(1,0,1,0);
                             Data = library.images.gradientp45;
@@ -2163,7 +2146,7 @@ function library:init()
                             ZIndex = z+4;
                             Parent = objs.background;
                         })
-                
+
                         objs.border1 = utility:Draw('Square', {
                             Size = newUDim2(1,2,1,2);
                             Position = newUDim2(0,-1,0,-1);
@@ -2171,7 +2154,7 @@ function library:init()
                             ZIndex = z+2;
                             Parent = objs.background;
                         })
-                
+
                         objs.border2 = utility:Draw('Square', {
                             Size = newUDim2(1,2,1,2);
                             Position = newUDim2(0,-1,0,-1);
@@ -2179,7 +2162,7 @@ function library:init()
                             ZIndex = z+1;
                             Parent = objs.border1;
                         })
-                
+
                         objs.text = utility:Draw('Text', {
                             Position = newUDim2(0,19,0,1);
                             ThemeColor = 'Option Text 3';
@@ -2189,63 +2172,53 @@ function library:init()
                             Outline = true;
                             Parent = objs.holder;
                         })
-                
-                        objs.checkmark = utility:Draw('Text', {
-                            Position = newUDim2(1, -10, 0, 1),
-                            Text = '✓',
-                            Visible = false,
-                            ThemeColor = 'Primary Text',
-                            Size = 13,
-                            Font = 2,
-                            ZIndex = z+6,
-                            Parent = objs.holder
-                        })
-                
+
                         utility:Connection(objs.holder.MouseEnter, function()
                             objs.border1.ThemeColor = 'Accent';
                         end)
-                
+
                         utility:Connection(objs.holder.MouseLeave, function()
                             objs.border1.ThemeColor = toggle.state and 'Accent' or 'Option Border 1';
                         end)
-                
+
                         utility:Connection(objs.holder.MouseButton1Down, function()
                             toggle:SetState(not toggle.state);
                         end)
+
                     end
                     ----------------------
-                
+
                     function toggle:SetState(bool, nocallback)
                         if typeof(bool) == 'boolean' then
                             self.state = bool;
                             if self.flag then
                                 library.flags[self.flag] = bool;
                             end
-                
+
                             self.objects.border1.ThemeColor = bool and 'Accent' or (self.objects.holder.Hover and 'Accent' or 'Option Border 1');
                             self.objects.text.ThemeColor = bool and (self.risky and 'Risky Text Enabled' or 'Option Text 1') or (self.risky and 'Risky Text' or 'Option Text 3');
                             self.objects.background.ThemeColor = bool and 'Accent' or 'Option Background';
-                            self.objects.background.ThemeColorOffset = bool and -55 or 0;
-                            self.objects.checkmark.Visible = bool;
-                
+                            self.objects.background.ThemeColorOffset = bool and -55 or 0
+
                             if not nocallback then
                                 self.callback(bool);
                             end
+
                         end
                     end
-                
+
                     function toggle:SetText(str)
                         if typeof(str) == 'string' then
                             self.text = str;
                             self.objects.text.Text = str;
                         end
                     end
-                
+
                     function toggle:UpdateOptions()
                         table.sort(self.options, function(a,b)
                             return a.order < b.order
                         end)
-                
+
                         local x, y = 0, 0
                         for i,option in next, self.options do
                             option.objects.holder.Visible = option.enabled
@@ -2259,17 +2232,11 @@ function library:init()
                                 end
                             end
                         end
-                
+
                         self.objects.holder.Size = newUDim2(1,0,0,17 + y);
                         section:UpdateOptions()
+
                     end
-                
-                    tooltip(toggle);
-                    toggle:SetText(toggle.text);
-                    toggle:SetState(toggle.state, true);
-                    self:UpdateOptions();
-                    return toggle
-                end
 
                     -- // Toggle Addons
                     function toggle:AddColor(data)
@@ -4527,15 +4494,16 @@ function library:init()
                 objs.background.ThemeColor = v.selected and 'Selected Tab Background' or 'Unselected Tab Background';
                 objs.background.Size = newUDim2(0, objs.text.TextBounds.X + 14, 1, v.selected and 1 or 0);
                 objs.background.Position = newUDim2(0, pos, 0, 0)
-        
+
                 objs.text.ThemeColor = v.selected and 'Selected Tab Text' or 'Unselected Tab Text';
                 objs.text.Position = newUDim2(.5, 0, 0, 3);
-        
+
                 objs.topBorder.ThemeColor = v.selected and 'Accent' or 'Unselected Tab Background';
-        
+
                 pos += objs.background.Size.X.Offset + 1
-        
+
                 v:UpdateSections();
+
             end
         end
 
@@ -4814,24 +4782,6 @@ function library:CreateSettingsTab(menu)
                library:Unload() 
            end
        end})
-
-    mainSection:AddSlider({
-        text = 'UI Scale', 
-        flag = 'ui_scale', 
-        min = 80, 
-        max = 120, 
-        value = 100,
-        suffix = '%',
-        callback = function(value)
-            for _, window in next, self.windows do
-                if not window.originalSize then
-                    window.originalSize = window.objects.background.Size
-                end
-                window.objects.background.Size = window.originalSize * (value/100)
-                window:UpdateTabs()
-            end
-        end
-    })
 
     mainSection:AddSeparator({text = 'Indicators'});
 
